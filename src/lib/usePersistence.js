@@ -1,24 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  loadLocal,
-  saveLocal,
-  clearLocal,
-  loadCloud,
-  saveCloud,
-} from './persistence'
+import { loadCloud, saveCloud } from './persistence'
+import { initialState } from '../game/useGame'
 
-const GUEST_DELAY = 1000 // localStorage debounce
-const CLOUD_DELAY = 5000 // Firestore debounce
+const CLOUD_DELAY = 5000 // Firestore autosave debounce
 
-// Coordinates saves/loads without ever blocking the click path. All writes are
-// fire-and-forget. Flow:
-//   - guest: debounce to localStorage (1s)
-//   - signed in: debounce to Firestore (5s), flush on hide/unload
-//   - on login: load cloud; if guest save has more lifetime bits, ask
+// Progress is tied to a signed-in account only. Signed out is ephemeral:
+//   - login: load that account's cloud save (or seed a fresh one)
+//   - logout: reset to a fresh run
+//   - signed in: debounce saves to Firestore, flush on tab hide/unload
+// No localStorage, no guest persistence. Writes never block the click path.
 export function usePersistence({ state, load, user, authReady }) {
   const [savedAt, setSavedAt] = useState(0) // flash "saved" when a write lands
-  const [conflict, setConflict] = useState(null)
-  const [synced, setSynced] = useState(false) // gate autosave until first load done
+  const [synced, setSynced] = useState(false) // gate autosave until load done
 
   const stateRef = useRef(state)
   stateRef.current = state
@@ -29,54 +22,38 @@ export function usePersistence({ state, load, user, authReady }) {
 
   const flash = useCallback(() => setSavedAt(Date.now()), [])
 
-  const persistNow = useCallback(
-    (u, s) => {
-      if (u) {
-        saveCloud(u.uid, s)
-          .then(flash)
-          .catch((e) => console.error('cloud save failed', e))
-      } else {
-        saveLocal(s)
-        flash()
-      }
+  const saveNow = useCallback(
+    (uid, s) => {
+      saveCloud(uid, s)
+        .then(flash)
+        .catch((e) => console.error('cloud save failed', e))
     },
     [flash],
   )
 
-  // Initial load + auth transitions.
+  // Load on login; reset on logout.
   useEffect(() => {
     if (!authReady) return
     const prevUid = prevUidRef.current
     const uid = user?.uid ?? null
     prevUidRef.current = uid
 
-    // Logout: keep in-memory progress; just persist locally from now on.
-    if (prevUid && !uid) {
-      setSynced(true)
+    if (!uid) {
+      setSynced(false)
+      // Clear the previous account's progress on logout. (No reset needed on
+      // the very first guest visit — state is already fresh.)
+      if (prevUid) load(initialState)
       return
     }
 
     let cancelled = false
+    setSynced(false)
     async function sync() {
-      if (uid) {
-        const cloud = await loadCloud(uid).catch(() => null)
-        const local = loadLocal()
-        if (cancelled) return
-        const localBits = local?.lifetimeBits ?? 0
-        const cloudBits = cloud?.lifetimeBits ?? 0
-        if (local && cloud && localBits > cloudBits) {
-          setConflict({ local, cloud, uid }) // ask; stay unsynced until resolved
-          return
-        }
-        const chosen = cloud ?? local
-        if (chosen) load(chosen)
-        if (!cloud && local) saveCloud(uid, local).catch(() => {}) // seed cloud
-        clearLocal()
-      } else {
-        const local = loadLocal()
-        if (local) load(local)
-      }
-      if (!cancelled) setSynced(true)
+      const cloud = await loadCloud(uid).catch(() => null)
+      if (cancelled) return
+      load(cloud ?? initialState)
+      if (!cloud) saveCloud(uid, initialState).catch(() => {}) // seed new account
+      setSynced(true)
     }
     sync()
     return () => {
@@ -84,34 +61,21 @@ export function usePersistence({ state, load, user, authReady }) {
     }
   }, [user, authReady, load])
 
-  const resolveConflict = useCallback(
-    (choice) => {
-      if (!conflict) return
-      const chosen = choice === 'local' ? conflict.local : conflict.cloud
-      load(chosen)
-      saveCloud(conflict.uid, chosen).then(flash).catch(() => {})
-      clearLocal()
-      setSynced(true)
-      setConflict(null)
-    },
-    [conflict, load, flash],
-  )
-
-  // Debounced autosave on state change.
+  // Debounced autosave — signed in only.
   useEffect(() => {
-    if (!synced) return
+    if (!user || !synced) return
     clearTimeout(timerRef.current)
-    const delay = user ? CLOUD_DELAY : GUEST_DELAY
-    const u = user
+    const uid = user.uid
     const s = state
-    timerRef.current = setTimeout(() => persistNow(u, s), delay)
+    timerRef.current = setTimeout(() => saveNow(uid, s), CLOUD_DELAY)
     return () => clearTimeout(timerRef.current)
-  }, [state, user, synced, persistNow])
+  }, [state, user, synced, saveNow])
 
-  // Flush immediately on tab hide / unload.
+  // Flush immediately on tab hide / unload — signed in only.
   useEffect(() => {
     const flush = () => {
-      if (synced) persistNow(userRef.current, stateRef.current)
+      const u = userRef.current
+      if (u && synced) saveNow(u.uid, stateRef.current)
     }
     const onVis = () => {
       if (document.visibilityState === 'hidden') flush()
@@ -122,7 +86,7 @@ export function usePersistence({ state, load, user, authReady }) {
       window.removeEventListener('pagehide', flush)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [synced, persistNow])
+  }, [synced, saveNow])
 
-  return { savedAt, conflict, resolveConflict }
+  return { savedAt }
 }

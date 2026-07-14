@@ -45,10 +45,52 @@ body {
 }
 
 .title {
-  font-size: 1.25rem;
-  letter-spacing: 0.35em;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Logo wordmark */
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  font-family: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.logo-prompt {
+  color: var(--fg-dim);
+}
+
+.logo-word {
+  color: var(--fg);
+  letter-spacing: 0.05em;
+}
+
+.logo-accent {
   color: var(--accent);
   text-shadow: 0 0 12px rgba(57, 255, 20, 0.35);
+}
+
+.logo-cursor {
+  color: var(--accent);
+  margin-left: -0.15em;
+}
+
+.logo-sm {
+  font-size: 1.15rem;
+}
+
+.logo-lg {
+  font-size: 2.4rem;
+}
+
+/* Boot splash */
+.boot-screen {
+  height: 100%;
+  display: grid;
+  place-items: center;
 }
 
 .header-right {
@@ -463,40 +505,98 @@ body {
   border-color: #ff5a5a;
 }
 
-/* Conflict modal */
-.conflict-lead {
-  font-size: 0.85rem;
-  color: var(--fg-dim);
-  margin-bottom: 1.2rem;
+/* Login gate */
+.login-screen {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
 }
 
-.save-choice {
-  font-family: inherit;
+.login-card {
+  width: min(440px, 92vw);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  padding: 1rem;
-  color: var(--fg);
-  background: #0c110c;
-  border: 1px solid var(--fg-dim);
-  border-radius: 8px;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 2.4rem 2rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 0 60px rgba(57, 255, 20, 0.08);
+  text-align: center;
+}
+
+.login-logo {
+  margin-bottom: 0.2rem;
+}
+
+.login-tag {
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+}
+
+.login-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  margin-top: 0.4rem;
+}
+
+.google-btn,
+.guest-btn {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   cursor: pointer;
-  text-align: left;
+  width: 100%;
 }
 
-.save-choice:hover {
-  border-color: var(--accent);
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  color: #202124;
+  background: #fff;
+  border: none;
+  font-weight: 600;
 }
 
-.save-choice h3 {
+.google-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.g-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4285f4;
+  color: #fff;
+  font-weight: 700;
   font-size: 0.8rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
 }
 
-.save-choice span {
-  font-size: 0.85rem;
+.guest-btn {
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--fg-dim);
+}
+
+.guest-warn {
+  font-size: 0.75rem;
+  color: #d9c25a;
+  line-height: 1.5;
+}
+
+.login-note {
+  font-size: 0.72rem;
+  color: var(--fg-dim);
 }
 
 /* Rebirth rain overlay */

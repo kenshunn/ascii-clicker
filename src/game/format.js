@@ -15,3 +15,10 @@ function trim(x) {
   const s = x.toFixed(1)
   return s.endsWith('.0') ? s.slice(0, -2) : s
 }
+
+// Multiplier badge, e.g. "1.18x", "3.4Mx" for huge tiers. Not a Bits value —
+// uses formatNumber's suffix logic for the big end.
+export function formatMult(m) {
+  if (m < 100) return `${m.toFixed(2)}x`
+  return `${formatNumber(m)}x`
+}

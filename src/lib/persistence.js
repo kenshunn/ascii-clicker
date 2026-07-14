@@ -1,4 +1,14 @@
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+} from 'firebase/firestore'
 import { db } from './firebase'
 
 // Only these fields are game state — pick them so stray keys (e.g. updatedAt)
@@ -26,10 +36,31 @@ export async function loadCloud(uid) {
   return snap.exists() ? pickState(snap.data()) : null
 }
 
-export async function saveCloud(uid, state) {
+export async function saveCloud(uid, state, profile) {
   if (!db) return
-  await setDoc(doc(db, 'saves', uid), {
-    ...pickState(state),
-    updatedAt: serverTimestamp(),
-  })
+  const clean = pickState(state)
+  await Promise.all([
+    // Private full save.
+    setDoc(doc(db, 'saves', uid), { ...clean, updatedAt: serverTimestamp() }),
+    // Public leaderboard mirror: name + the ranked stats only.
+    setDoc(doc(db, 'leaderboard', uid), {
+      name: profile?.name || 'Anonymous',
+      lifetimeBits: clean?.lifetimeBits ?? 0,
+      lifetimeClicks: clean?.lifetimeClicks ?? 0,
+      rebirths: clean?.rebirths ?? 0,
+      updatedAt: serverTimestamp(),
+    }),
+  ])
+}
+
+// Top players by lifetime Bits earned. Public read.
+export async function loadLeaderboard(n = 20) {
+  if (!db) return []
+  const q = query(
+    collection(db, 'leaderboard'),
+    orderBy('lifetimeBits', 'desc'),
+    limit(n),
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ uid: d.id, ...d.data() }))
 }

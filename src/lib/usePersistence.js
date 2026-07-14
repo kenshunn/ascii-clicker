@@ -23,8 +23,9 @@ export function usePersistence({ state, load, user, authReady }) {
   const flash = useCallback(() => setSavedAt(Date.now()), [])
 
   const saveNow = useCallback(
-    (uid, s) => {
-      saveCloud(uid, s)
+    (u, s) => {
+      const name = u.displayName || u.email || 'Anonymous'
+      saveCloud(u.uid, s, { name })
         .then(flash)
         .catch((e) => console.error('cloud save failed', e))
     },
@@ -52,7 +53,10 @@ export function usePersistence({ state, load, user, authReady }) {
       const cloud = await loadCloud(uid).catch(() => null)
       if (cancelled) return
       load(cloud ?? initialState)
-      if (!cloud) saveCloud(uid, initialState).catch(() => {}) // seed new account
+      if (!cloud) {
+        const name = user.displayName || user.email || 'Anonymous'
+        saveCloud(uid, initialState, { name }).catch(() => {}) // seed new account
+      }
       setSynced(true)
     }
     sync()
@@ -65,9 +69,9 @@ export function usePersistence({ state, load, user, authReady }) {
   useEffect(() => {
     if (!user || !synced) return
     clearTimeout(timerRef.current)
-    const uid = user.uid
+    const u = user
     const s = state
-    timerRef.current = setTimeout(() => saveNow(uid, s), CLOUD_DELAY)
+    timerRef.current = setTimeout(() => saveNow(u, s), CLOUD_DELAY)
     return () => clearTimeout(timerRef.current)
   }, [state, user, synced, saveNow])
 
@@ -75,7 +79,7 @@ export function usePersistence({ state, load, user, authReady }) {
   useEffect(() => {
     const flush = () => {
       const u = userRef.current
-      if (u && synced) saveNow(u.uid, stateRef.current)
+      if (u && synced) saveNow(u, stateRef.current)
     }
     const onVis = () => {
       if (document.visibilityState === 'hidden') flush()

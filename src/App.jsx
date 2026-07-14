@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion'
 import { useGame, currentChar, clickValue, canRebirth } from './game/useGame'
 import { useAuth } from './lib/useAuth'
 import { usePersistence } from './lib/usePersistence'
+import { loadLeaderboard } from './lib/persistence'
 import { isConfigured } from './lib/firebase'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -12,6 +13,7 @@ import ClickTarget from './components/ClickTarget'
 import RebirthButton from './components/RebirthButton'
 import RebirthModal from './components/RebirthModal'
 import RebirthRain from './components/RebirthRain'
+import Leaderboard from './components/Leaderboard'
 import LoginScreen from './components/LoginScreen'
 import ProgressStrip from './components/ProgressStrip'
 import Logo from './components/Logo'
@@ -34,6 +36,20 @@ export default function App() {
     rebirth() // reset happens now, hidden under the rain
     setPhase('rain')
   }, [rebirth])
+
+  // Leaderboard: fetched fresh each open.
+  const [lb, setLb] = useState({ open: false, loading: false, error: false, entries: [] })
+  const openLeaderboard = useCallback(async () => {
+    setLb({ open: true, loading: true, error: false, entries: [] })
+    try {
+      const entries = await loadLeaderboard(20)
+      setLb({ open: true, loading: false, error: false, entries })
+    } catch (e) {
+      console.error('leaderboard load failed', e)
+      setLb({ open: true, loading: false, error: true, entries: [] })
+    }
+  }, [])
+  const closeLeaderboard = useCallback(() => setLb((s) => ({ ...s, open: false })), [])
 
   // Wait for auth to resolve before deciding gate vs game (avoids a flash).
   if (!ready) {
@@ -64,6 +80,7 @@ export default function App() {
         user={user}
         onSignIn={signIn}
         onSignOut={logOut}
+        onOpenLeaderboard={openLeaderboard}
       />
       <div className="body">
         <main className="play-area">
@@ -92,6 +109,15 @@ export default function App() {
             state={state}
             onConfirm={confirmRebirth}
             onCancel={() => setPhase('idle')}
+          />
+        )}
+        {lb.open && (
+          <Leaderboard
+            entries={lb.entries}
+            loading={lb.loading}
+            error={lb.error}
+            currentUid={user?.uid}
+            onClose={closeLeaderboard}
           />
         )}
       </AnimatePresence>

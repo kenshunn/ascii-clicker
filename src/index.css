@@ -160,6 +160,93 @@ body {
   color: var(--accent);
 }
 
+.lb-btn {
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.35rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.lb-btn:hover {
+  border-color: var(--accent);
+}
+
+/* Leaderboard modal */
+.leaderboard-modal {
+  width: min(620px, 94vw);
+}
+
+.lb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.lb-close {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--fg-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.lb-msg {
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.lb-table-wrap {
+  overflow-x: auto;
+}
+
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.lb-table th {
+  text-align: left;
+  color: var(--fg-dim);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.lb-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid #141a14;
+  white-space: nowrap;
+}
+
+.lb-you {
+  background: rgba(57, 255, 20, 0.08);
+}
+
+.lb-name {
+  color: var(--fg);
+}
+
+.lb-badge {
+  margin-left: 0.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
 /* Body split: play area + sidebar */
 .body {
   flex: 1;

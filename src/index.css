@@ -1,0 +1,159 @@
+/* Layout + theme only. NO @keyframes — all motion via framer-motion. */
+
+:root {
+  --bg: #0a0e0a;
+  --panel: #0f150f;
+  --border: #1f2a1f;
+  --fg: #b6f7b6;
+  --fg-dim: #4c7a4c;
+  --accent: #39ff14;
+  font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.title {
+  font-size: 1.25rem;
+  letter-spacing: 0.35em;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(57, 255, 20, 0.35);
+}
+
+.auth-slot {
+  width: 120px;
+  height: 34px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+
+/* Body split: play area + sidebar */
+.body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.play-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  user-select: none;
+}
+
+.sidebar {
+  width: 280px;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  padding: 1.2rem;
+}
+
+.sidebar-title {
+  font-size: 0.9rem;
+  letter-spacing: 0.25em;
+  color: var(--fg-dim);
+  margin-bottom: 0.8rem;
+}
+
+.sidebar-empty {
+  color: var(--fg-dim);
+  font-size: 0.85rem;
+}
+
+/* Bit counter */
+.bit-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.bit-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.bit-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  color: var(--fg-dim);
+}
+
+/* Click target */
+.click-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.click-target {
+  font-family: inherit;
+  font-size: 10rem;
+  line-height: 1;
+  color: var(--fg);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2rem 3rem;
+  touch-action: manipulation;
+}
+
+.click-target:focus-visible {
+  outline: 1px solid var(--fg-dim);
+  border-radius: 8px;
+}
+
+/* Floating +N layer */
+.float-layer {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  pointer-events: none;
+}
+
+.float-num {
+  position: absolute;
+  transform: translateX(-50%);
+  top: -0.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
